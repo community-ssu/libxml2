@@ -5008,10 +5008,14 @@ xmlParseNotationType(xmlParserCtxtPtr ctxt) {
 	if (name == NULL) {
 	    xmlFatalErrMsg(ctxt, XML_ERR_NAME_REQUIRED,
 			   "Name expected in NOTATION declaration\n");
-	    return(ret);
+	    xmlFreeEnumeration(ret);
+	    return(NULL);
 	}
 	cur = xmlCreateEnumeration(name);
-	if (cur == NULL) return(ret);
+	if (cur == NULL) {
+	    xmlFreeEnumeration(ret);
+	    return(NULL);
+	}
 	if (last == NULL) ret = last = cur;
 	else {
 	    last->next = cur;
@@ -5021,9 +5025,8 @@ xmlParseNotationType(xmlParserCtxtPtr ctxt) {
     } while (RAW == '|');
     if (RAW != ')') {
 	xmlFatalErr(ctxt, XML_ERR_NOTATION_NOT_FINISHED, NULL);
-	if ((last != NULL) && (last != ret))
-	    xmlFreeEnumeration(last);
-	return(ret);
+	xmlFreeEnumeration(ret);
+	return(NULL);
     }
     NEXT;
     return(ret);
@@ -5060,11 +5063,15 @@ xmlParseEnumerationType(xmlParserCtxtPtr ctxt) {
         name = xmlParseNmtoken(ctxt);
 	if (name == NULL) {
 	    xmlFatalErr(ctxt, XML_ERR_NMTOKEN_REQUIRED, NULL);
-	    return(ret);
+	    xmlFreeEnumeration(ret);
+	    return(NULL);
 	}
 	cur = xmlCreateEnumeration(name);
 	xmlFree(name);
-	if (cur == NULL) return(ret);
+	if (cur == NULL) {
+	    xmlFreeEnumeration(ret);
+	    return(NULL);
+	}
 	if (last == NULL) ret = last = cur;
 	else {
 	    last->next = cur;
@@ -5074,7 +5081,8 @@ xmlParseEnumerationType(xmlParserCtxtPtr ctxt) {
     } while (RAW == '|');
     if (RAW != ')') {
 	xmlFatalErr(ctxt, XML_ERR_ATTLIST_NOT_FINISHED, NULL);
-	return(ret);
+	xmlFreeEnumeration(ret);
+	return(NULL);
     }
     NEXT;
     return(ret);
@@ -5430,9 +5438,10 @@ xmlParseElementMixedContentDecl(xmlParserCtxtPtr ctxt, int inputchk) {
 }
 
 /**
- * xmlParseElementChildrenContentDecl:
+ * xmlParseElementChildrenContentDeclPriv:
  * @ctxt:  an XML parser context
  * @inputchk:  the input used for the current entity, needed for boundary checks
+ * @depth: the level of recursion
  *
  * parse the declaration for a Mixed Element content
  * The leading '(' and spaces have been skipped in xmlParseElementContentDecl
@@ -5460,12 +5469,19 @@ xmlParseElementMixedContentDecl(xmlParserCtxtPtr ctxt, int inputchk) {
  * Returns the tree of xmlElementContentPtr describing the element 
  *          hierarchy.
  */
-xmlElementContentPtr
-xmlParseElementChildrenContentDecl (xmlParserCtxtPtr ctxt, int inputchk) {
+static xmlElementContentPtr
+xmlParseElementChildrenContentDeclPriv (xmlParserCtxtPtr ctxt, int inputchk,
+					int depth) {
     xmlElementContentPtr ret = NULL, cur = NULL, last = NULL, op = NULL;
     const xmlChar *elem;
     xmlChar type = 0;
 
+    if (depth > 128) {
+	xmlFatalErrMsgInt(ctxt, XML_ERR_ELEMCONTENT_NOT_FINISHED,
+"xmlParseElementChildrenContentDecl : depth %d too deep\n",
+			  depth);
+	return NULL;
+    }
     SKIP_BLANKS;
     GROW;
     if (RAW == '(') {
@@ -5474,7 +5490,8 @@ xmlParseElementChildrenContentDecl (xmlParserCtxtPtr ctxt, int inputchk) {
         /* Recurse on first child */
 	NEXT;
 	SKIP_BLANKS;
-        cur = ret = xmlParseElementChildrenContentDecl(ctxt, inputid);
+        cur = ret = xmlParseElementChildrenContentDeclPriv(ctxt, inputid,
+							   depth + 1);
 	SKIP_BLANKS;
 	GROW;
     } else {
@@ -5606,7 +5623,8 @@ xmlParseElementChildrenContentDecl (xmlParserCtxtPtr ctxt, int inputchk) {
 	    /* Recurse on second child */
 	    NEXT;
 	    SKIP_BLANKS;
-	    last = xmlParseElementChildrenContentDecl(ctxt, inputid);
+	    last = xmlParseElementChildrenContentDeclPriv(ctxt, inputid,
+							  depth + 1);
 	    SKIP_BLANKS;
 	} else {
 	    elem = xmlParseName(ctxt);
@@ -5717,6 +5735,44 @@ xmlParseElementChildrenContentDecl (xmlParserCtxtPtr ctxt, int inputchk) {
 }
 
 /**
+ *
+ * xmlParseElementChildrenContentDecl:
+ * @ctxt:  an XML parser context
+ * @inputchk:  the input used for the current entity, needed for boundary checks
+ * @depth: the level of recursion
+ *
+ * parse the declaration for a Mixed Element content
+ * The leading '(' and spaces have been skipped in xmlParseElementContentDecl
+ *
+ * [47] children ::= (choice | seq) ('?' | '*' | '+')?
+ *
+ * [48] cp ::= (Name | choice | seq) ('?' | '*' | '+')?
+ *
+ * [49] choice ::= '(' S? cp ( S? '|' S? cp )* S? ')'
+ *
+ * [50] seq ::= '(' S? cp ( S? ',' S? cp )* S? ')'
+ *
+ * [ VC: Proper Group/PE Nesting ] applies to [49] and [50]
+ * TODO Parameter-entity replacement text must be properly nested
+ *     with parenthesized groups. That is to say, if either of the
+ *     opening or closing parentheses in a choice, seq, or Mixed
+ *     construct is contained in the replacement text for a parameter
+ *     entity, both must be contained in the same replacement text. For
+ *     interoperability, if a parameter-entity reference appears in a
+ *     choice, seq, or Mixed construct, its replacement text should not
+ *     be empty, and neither the first nor last non-blank character of
+ *     the replacement text should be a connector (| or ,).
+ *
+ * Returns the tree of xmlElementContentPtr describing the element
+ *          hierarchy.
+ */
+xmlElementContentPtr
+xmlParseElementChildrenContentDecl(xmlParserCtxtPtr ctxt, int inputchk) {
+    /* stub left for API/ABI compat */
+    return(xmlParseElementChildrenContentDeclPriv(ctxt, inputchk, 1));
+}
+
+/**
  * xmlParseElementContentDecl:
  * @ctxt:  an XML parser context
  * @name:  the name of the element being defined.
@@ -5752,7 +5808,7 @@ xmlParseElementContentDecl(xmlParserCtxtPtr ctxt, const xmlChar *name,
         tree = xmlParseElementMixedContentDecl(ctxt, inputid);
 	res = XML_ELEMENT_TYPE_MIXED;
     } else {
-        tree = xmlParseElementChildrenContentDecl(ctxt, inputid);
+	tree = xmlParseElementChildrenContentDeclPriv(ctxt, inputid, 1);
 	res = XML_ELEMENT_TYPE_ELEMENT;
     }
     SKIP_BLANKS;
