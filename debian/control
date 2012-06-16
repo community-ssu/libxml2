@@ -9,7 +9,7 @@ Build-Depends: debhelper (>= 5.0.42), zlib1g-dev | libz-dev, python-all-dev (>= 
 Package: libxml2
 Architecture: any
 Section: libs
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, kernel-feature-errata-430973-workaround
 Conflicts: libxslt1.1 (<= 1.1.12-8)
 Recommends: xml-core
 Description: GNOME XML library
@@ -26,7 +26,7 @@ Description: GNOME XML library
 Package: libxml2-utils
 Architecture: any
 Section: text
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, kernel-feature-errata-430973-workaround
 Replaces: libxml2 (<< 2.5.7-1)
 Conflicts: libxml2 (<< 2.5.7-1)
 Description: XML utilities
@@ -96,7 +96,7 @@ Section: python
 Conflicts: python2.3-libxml2 (<< 2.6.26.dfsg-2), python2.4-libxml2 (<< 2.6.26.dfsg-2)
 Replaces: python2.3-libxml2 (<< 2.6.26.dfsg-2), python2.4-libxml2 (<< 2.6.26.dfsg-2)
 Provides: ${python:Provides}
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, kernel-feature-errata-430973-workaround
 XB-Python-Version: ${python:Versions}
 Description: Python bindings for the GNOME XML library
  XML is a metalanguage to let you design your own markup language.

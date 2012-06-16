@@ -22,7 +22,7 @@ PYVERS=$(shell pyversions -s)
 # The current default version of python
 PYVER=$(shell pyversions -d)
 
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -mthumb
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
       CFLAGS += -O0
