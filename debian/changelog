@@ -1,3 +1,10 @@
+libxml2 (2.6.32.dfsg-5maemo4+0m5+0cssu1) unstable; urgency=low
+
+  * Fixes wrong zlib dependency on internal staff from upstream
+    commit a7e79f28689c574e0bbef17f4cb3da00249181ff
+
+ -- Ludek Finstrle <luf@pzkags.cz>  Sat, 29 Dec 2012 10:01:32 +0100
+
 libxml2 (2.6.32.dfsg-5maemo4+0m5+0cssu0) unstable; urgency=low
 
   * Fixes https://bugs.maemo.org/show_bug.cgi?id=12566
