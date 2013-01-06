@@ -2405,6 +2405,9 @@ __xmlParserInputBufferCreateFilename(const char *URI, xmlCharEncoding enc) {
 #ifdef HAVE_ZLIB_H
 	if ((xmlInputCallbackTable[i].opencallback == xmlGzfileOpen) &&
 		(strcmp(URI, "-") != 0)) {
+#if defined(ZLIB_VERNUM) && ZLIB_VERNUM >= 0x1230
+	    ret->compressed = !gzdirect(context);
+#else  
 	    if (((z_stream *)context)->avail_in > 4) {
 	        char *cptr, buff4[4];
 		cptr = (char *) ((z_stream *)context)->next_in;
@@ -2416,6 +2419,7 @@ __xmlParserInputBufferCreateFilename(const char *URI, xmlCharEncoding enc) {
 		    gzrewind(context);
 		}
 	    }
+#endif
 	}
 #endif
     }

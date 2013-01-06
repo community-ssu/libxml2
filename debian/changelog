@@ -1,3 +1,16 @@
+libxml2 (2.6.32.dfsg-5maemo4+0m5+0cssu1+thumb0) unstable; urgency=low
+
+  * Thumb2 compiled
+
+ -- Ivaylo Dimitrov <freemangordon@abv.bg>  Sun, 06 Jan 2013 10:23:12 +0200
+
+libxml2 (2.6.32.dfsg-5maemo4+0m5+0cssu1) unstable; urgency=low
+
+  * Fixes wrong zlib dependency on internal staff from upstream
+    commit a7e79f28689c574e0bbef17f4cb3da00249181ff
+
+ -- Ludek Finstrle <luf@pzkags.cz>  Sat, 29 Dec 2012 10:01:32 +0100
+
 libxml2 (2.6.32.dfsg-5maemo4+0m5+0cssu0+thumb0) unstable; urgency=low
 
   * Thumb2 compiled
