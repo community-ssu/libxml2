@@ -38,14 +38,9 @@
 static FILE *logfile = NULL;
 static int verbose = 0;
 
-
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
-
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 #define vsnprintf _vsnprintf
-
 #define snprintf _snprintf
-
 #endif
 
 /************************************************************************
@@ -307,7 +302,7 @@ getString(xmlNodePtr cur, const char *xpath) {
  *									*
  ************************************************************************/
 
-static int 
+static int
 xsdIncorectTestCase(xmlNodePtr cur) {
     xmlNodePtr test;
     xmlBufferPtr buf;
@@ -319,7 +314,7 @@ xsdIncorectTestCase(xmlNodePtr cur) {
     if (cur == NULL) {
         return(0);
     }
-    
+
     test = getNext(cur, "./*");
     if (test == NULL) {
         test_log("Failed to find test in correct line %ld\n",
@@ -358,7 +353,7 @@ done:
     if (rng != NULL)
         xmlRelaxNGFree(rng);
     xmlResetLastError();
-    if ((memt != xmlMemUsed()) && (extraMemoryFromResolver == 0)) {
+    if ((memt < xmlMemUsed()) && (extraMemoryFromResolver == 0)) {
 	test_log("Validation of tests starting line %ld leaked %d\n",
 		xmlGetLineNo(cur), xmlMemUsed() - memt);
 	nb_leaks++;

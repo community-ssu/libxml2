@@ -39,6 +39,9 @@
 
 /* #define DEBUG_STREAMING */
 
+#ifdef ERROR
+#undef ERROR
+#endif
 #define ERROR(a, b, c, d)
 #define ERROR5(a, b, c, d, e)
 
@@ -305,7 +308,8 @@ xmlNewPatParserContext(const xmlChar *pattern, xmlDictPtr dict,
     cur->base = pattern;
     if (namespaces != NULL) {
         int i;
-	for (i = 0;namespaces[2 * i] != NULL;i++);
+        for (i = 0;namespaces[2 * i] != NULL;i++)
+            ;
         cur->nb_namespaces = i;
     } else {
         cur->nb_namespaces = 0;
@@ -2285,9 +2289,13 @@ xmlStreamPop(xmlStreamCtxtPtr stream) {
 	if (stream->blockLevel == stream->level)
 	    stream->blockLevel = -1;
 
-	stream->level--;
-	if (stream->level < 0)
-	    return(-1);		
+	/*
+	 *  stream->level can be zero when XML_FINAL_IS_ANY_NODE is set
+	 *  (see the thread at
+	 *  http://mail.gnome.org/archives/xslt/2008-July/msg00027.html)
+	 */
+	if (stream->level)
+	    stream->level--;
 	/*
 	 * Check evolution of existing states
 	 */	

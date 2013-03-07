@@ -102,7 +102,7 @@ xmlFreeEntity(xmlEntityPtr entity)
         dict = entity->doc->dict;
 
 
-    if ((entity->children) && (entity->owner != 0) &&
+    if ((entity->children) && (entity->owner == 1) &&
         (entity == (xmlEntityPtr) entity->children->parent))
         xmlFreeNodeList(entity->children);
     if (dict != NULL) {
@@ -136,6 +136,62 @@ xmlFreeEntity(xmlEntityPtr entity)
             xmlFree((char *) entity->orig);
     }
     xmlFree(entity);
+}
+
+/*
+ * xmlCreateEntity:
+ *
+ * internal routine doing the entity node strutures allocations
+ */
+static xmlEntityPtr
+xmlCreateEntity(xmlDictPtr dict, const xmlChar *name, int type,
+	        const xmlChar *ExternalID, const xmlChar *SystemID,
+	        const xmlChar *content) {
+    xmlEntityPtr ret;
+
+    ret = (xmlEntityPtr) xmlMalloc(sizeof(xmlEntity));
+    if (ret == NULL) {
+        xmlEntitiesErrMemory("xmlCreateEntity: malloc failed");
+	return(NULL);
+    }
+    memset(ret, 0, sizeof(xmlEntity));
+    ret->type = XML_ENTITY_DECL;
+    ret->checked = 0;
+
+    /*
+     * fill the structure.
+     */
+    ret->etype = (xmlEntityType) type;
+    if (dict == NULL) {
+	ret->name = xmlStrdup(name);
+	if (ExternalID != NULL)
+	    ret->ExternalID = xmlStrdup(ExternalID);
+	if (SystemID != NULL)
+	    ret->SystemID = xmlStrdup(SystemID);
+    } else {
+        ret->name = xmlDictLookup(dict, name, -1);
+	if (ExternalID != NULL)
+	    ret->ExternalID = xmlDictLookup(dict, ExternalID, -1);
+	if (SystemID != NULL)
+	    ret->SystemID = xmlDictLookup(dict, SystemID, -1);
+    }
+    if (content != NULL) {
+        ret->length = xmlStrlen(content);
+	if ((dict != NULL) && (ret->length < 5))
+	    ret->content = (xmlChar *)
+	                   xmlDictLookup(dict, content, ret->length);
+	else
+	    ret->content = xmlStrndup(content, ret->length);
+     } else {
+        ret->length = 0;
+        ret->content = NULL;
+    }
+    ret->URI = NULL; /* to be computed by the layer knowing
+			the defining entity */
+    ret->orig = NULL;
+    ret->owner = 0;
+
+    return(ret);
 }
 
 /*
@@ -175,47 +231,9 @@ xmlAddEntity(xmlDtdPtr dtd, const xmlChar *name, int type,
     }
     if (table == NULL)
 	return(NULL);
-    ret = (xmlEntityPtr) xmlMalloc(sizeof(xmlEntity));
-    if (ret == NULL) {
-        xmlEntitiesErrMemory("xmlAddEntity:: malloc failed");
-	return(NULL);
-    }
-    memset(ret, 0, sizeof(xmlEntity));
-    ret->type = XML_ENTITY_DECL;
-    ret->checked = 0;
-
-    /*
-     * fill the structure.
-     */
-    ret->etype = (xmlEntityType) type;
-    if (dict == NULL) {
-	ret->name = xmlStrdup(name);
-	if (ExternalID != NULL)
-	    ret->ExternalID = xmlStrdup(ExternalID);
-	if (SystemID != NULL)
-	    ret->SystemID = xmlStrdup(SystemID);
-    } else {
-        ret->name = xmlDictLookup(dict, name, -1);
-	if (ExternalID != NULL)
-	    ret->ExternalID = xmlDictLookup(dict, ExternalID, -1);
-	if (SystemID != NULL)
-	    ret->SystemID = xmlDictLookup(dict, SystemID, -1);
-    }
-    if (content != NULL) {
-        ret->length = xmlStrlen(content);
-	if ((dict != NULL) && (ret->length < 5))
-	    ret->content = (xmlChar *)
-	                   xmlDictLookup(dict, content, ret->length);
-	else
-	    ret->content = xmlStrndup(content, ret->length);
-     } else {
-        ret->length = 0;
-        ret->content = NULL;
-    }
-    ret->URI = NULL; /* to be computed by the layer knowing
-			the defining entity */
-    ret->orig = NULL;
-    ret->owner = 0;
+    ret = xmlCreateEntity(dict, name, type, ExternalID, SystemID, content);
+    if (ret == NULL)
+        return(NULL);
     ret->doc = dtd->doc;
 
     if (xmlHashAddEntry(table, name, ret)) {
@@ -359,6 +377,44 @@ xmlAddDocEntity(xmlDocPtr doc, const xmlChar *name, int type,
 	ret->prev = dtd->last;
 	dtd->last = (xmlNodePtr) ret;
     }
+    return(ret);
+}
+
+/**
+ * xmlNewEntity:
+ * @doc:  the document
+ * @name:  the entity name
+ * @type:  the entity type XML_xxx_yyy_ENTITY
+ * @ExternalID:  the entity external ID if available
+ * @SystemID:  the entity system ID if available
+ * @content:  the entity content
+ *
+ * Create a new entity, this differs from xmlAddDocEntity() that if
+ * the document is NULL or has no internal subset defined, then an
+ * unlinked entity structure will be returned, it is then the responsability
+ * of the caller to link it to the document later or free it when not needed
+ * anymore.
+ *
+ * Returns a pointer to the entity or NULL in case of error
+ */
+xmlEntityPtr
+xmlNewEntity(xmlDocPtr doc, const xmlChar *name, int type,
+	     const xmlChar *ExternalID, const xmlChar *SystemID,
+	     const xmlChar *content) {
+    xmlEntityPtr ret;
+    xmlDictPtr dict;
+
+    if ((doc != NULL) && (doc->intSubset != NULL)) {
+	return(xmlAddDocEntity(doc, name, type, ExternalID, SystemID, content));
+    }
+    if (doc != NULL)
+        dict = doc->dict;
+    else
+        dict = NULL;
+    ret = xmlCreateEntity(dict, name, type, ExternalID, SystemID, content);
+    if (ret == NULL)
+        return(NULL);
+    ret->doc = doc;
     return(ret);
 }
 
@@ -634,7 +690,7 @@ xmlEncodeEntitiesReentrant(xmlDocPtr doc, const xmlChar *input) {
 	}
 	cur++;
     }
-    *out++ = 0;
+    *out = 0;
     return(buffer);
 }
 
@@ -716,7 +772,7 @@ xmlEncodeSpecialChars(xmlDocPtr doc ATTRIBUTE_UNUSED, const xmlChar *input) {
 	}
 	cur++;
     }
-    *out++ = 0;
+    *out = 0;
     return(buffer);
 }
 

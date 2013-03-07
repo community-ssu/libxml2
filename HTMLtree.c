@@ -151,7 +151,7 @@ found_content:
  * htmlSetMetaEncoding:
  * @doc:  the document
  * @encoding:  the encoding string
- * 
+ *
  * Sets the current encoding in the Meta tags
  * NOTE: this will not change the document content encoding, just
  * the META flag associated.
@@ -160,13 +160,18 @@ found_content:
  */
 int
 htmlSetMetaEncoding(htmlDocPtr doc, const xmlChar *encoding) {
-    htmlNodePtr cur, meta;
-    const xmlChar *content;
+    htmlNodePtr cur, meta = NULL, head = NULL;
+    const xmlChar *content = NULL;
     char newcontent[100];
 
+    newcontent[0] = 0;
 
     if (doc == NULL)
 	return(-1);
+
+    /* html isn't a real encoding it's just libxml2 way to get entities */
+    if (!xmlStrcasecmp(encoding, BAD_CAST "html"))
+        return(-1);
 
     if (encoding != NULL) {
 	snprintf(newcontent, sizeof(newcontent), "text/html; charset=%s",
@@ -201,39 +206,24 @@ htmlSetMetaEncoding(htmlDocPtr doc, const xmlChar *encoding) {
 	if ((cur->type == XML_ELEMENT_NODE) && (cur->name != NULL)) {
 	    if (xmlStrcasecmp(cur->name, BAD_CAST"head") == 0)
 		break;
-	    if (xmlStrcasecmp(cur->name, BAD_CAST"meta") == 0)
+	    if (xmlStrcasecmp(cur->name, BAD_CAST"meta") == 0) {
+                head = cur->parent;
 		goto found_meta;
+            }
 	}
 	cur = cur->next;
     }
     if (cur == NULL)
 	return(-1);
 found_head:
-    if (cur->children == NULL) {
-	if (encoding == NULL)
-	    return(0);
-	meta = xmlNewDocNode(doc, NULL, BAD_CAST"meta", NULL);
-	xmlAddChild(cur, meta);
-	xmlNewProp(meta, BAD_CAST"http-equiv", BAD_CAST"Content-Type");
-	xmlNewProp(meta, BAD_CAST"content", BAD_CAST newcontent);
-	return(0);
-    }
+    head = cur;
+    if (cur->children == NULL)
+        goto create;
     cur = cur->children;
 
 found_meta:
-    if (encoding != NULL) {
-	/*
-	 * Create a new Meta element with the right attributes
-	 */
-
-	meta = xmlNewDocNode(doc, NULL, BAD_CAST"meta", NULL);
-	xmlAddPrevSibling(cur, meta);
-	xmlNewProp(meta, BAD_CAST"http-equiv", BAD_CAST"Content-Type");
-	xmlNewProp(meta, BAD_CAST"content", BAD_CAST newcontent);
-    }
-
     /*
-     * Search and destroy all the remaining the meta elements carrying
+     * Search and update all the remaining the meta elements carrying
      * encoding informations
      */
     while (cur != NULL) {
@@ -253,11 +243,11 @@ found_meta:
 			if ((!xmlStrcasecmp(attr->name, BAD_CAST"http-equiv"))
 			 && (!xmlStrcasecmp(value, BAD_CAST"Content-Type")))
 			    http = 1;
-			else 
+			else
                         {
-                           if ((value != NULL) && 
-				(!xmlStrcasecmp(attr->name, BAD_CAST"content")))
-			      content = value;
+                           if ((value != NULL) &&
+                               (!xmlStrcasecmp(attr->name, BAD_CAST"content")))
+			       content = value;
                         }
 		        if ((http != 0) && (content != NULL))
 			    break;
@@ -266,16 +256,41 @@ found_meta:
 		}
 		if ((http != 0) && (content != NULL)) {
 		    meta = cur;
-		    cur = cur->next;
-		    xmlUnlinkNode(meta);
-                    xmlFreeNode(meta);
-		    continue;
+		    break;
 		}
 
 	    }
 	}
 	cur = cur->next;
     }
+create:
+    if (meta == NULL) {
+        if ((encoding != NULL) && (head != NULL)) {
+            /*
+             * Create a new Meta element with the right attributes
+             */
+
+            meta = xmlNewDocNode(doc, NULL, BAD_CAST"meta", NULL);
+            if (head->children == NULL)
+                xmlAddChild(head, meta);
+            else
+                xmlAddPrevSibling(head->children, meta);
+            xmlNewProp(meta, BAD_CAST"http-equiv", BAD_CAST"Content-Type");
+            xmlNewProp(meta, BAD_CAST"content", BAD_CAST newcontent);
+        }
+    } else {
+        /* remove the meta tag if NULL is passed */
+        if (encoding == NULL) {
+            xmlUnlinkNode(meta);
+            xmlFreeNode(meta);
+        }
+        /* change the document only if there is a real encoding change */
+        else if (xmlStrcasestr(content, encoding) == NULL) {
+            xmlSetProp(meta, BAD_CAST"content", BAD_CAST newcontent);
+        }
+    }
+
+
     return(0);
 }
 
@@ -316,6 +331,11 @@ htmlIsBooleanAttr(const xmlChar *name)
 }
 
 #ifdef LIBXML_OUTPUT_ENABLED
+/*
+ * private routine exported from xmlIO.c
+ */
+xmlOutputBufferPtr
+xmlAllocOutputBufferInternal(xmlCharEncodingHandlerPtr encoder);
 /************************************************************************
  *									*
  * 			Output error handlers				*
@@ -467,7 +487,7 @@ htmlNodeDumpFileFormat(FILE *out, xmlDocPtr doc,
 	if (enc != XML_CHAR_ENCODING_UTF8) {
 	    handler = xmlFindCharEncodingHandler(encoding);
 	    if (handler == NULL)
-		return(-1);
+		htmlSaveErr(XML_SAVE_UNKNOWN_ENCODING, NULL, encoding);
 	}
     }
 
@@ -548,11 +568,9 @@ htmlDocDumpMemoryFormat(xmlDocPtr cur, xmlChar**mem, int *size, int format) {
 	    }
 
 	    handler = xmlFindCharEncodingHandler(encoding);
-	    if (handler == NULL) {
-		*mem = NULL;
-		*size = 0;
-		return;
-	    }
+	    if (handler == NULL)
+                htmlSaveErr(XML_SAVE_UNKNOWN_ENCODING, NULL, encoding);
+
 	} else {
 	    handler = xmlFindCharEncodingHandler(encoding);
 	}
@@ -566,14 +584,14 @@ htmlDocDumpMemoryFormat(xmlDocPtr cur, xmlChar**mem, int *size, int format) {
     if (handler == NULL)
 	handler = xmlFindCharEncodingHandler("ascii");
 
-    buf = xmlAllocOutputBuffer(handler);
+    buf = xmlAllocOutputBufferInternal(handler);
     if (buf == NULL) {
 	*mem = NULL;
 	*size = 0;
 	return;
     }
 
-	htmlDocContentDumpFormatOutput(buf, cur, NULL, format);
+    htmlDocContentDumpFormatOutput(buf, cur, NULL, format);
 
     xmlOutputBufferFlush(buf);
     if (buf->conv != NULL) {
@@ -1047,7 +1065,7 @@ htmlDocDump(FILE *f, xmlDocPtr cur) {
 
 	    handler = xmlFindCharEncodingHandler(encoding);
 	    if (handler == NULL)
-		return(-1);
+		htmlSaveErr(XML_SAVE_UNKNOWN_ENCODING, NULL, encoding);
 	} else {
 	    handler = xmlFindCharEncodingHandler(encoding);
 	}
@@ -1106,7 +1124,7 @@ htmlSaveFile(const char *filename, xmlDocPtr cur) {
 
 	    handler = xmlFindCharEncodingHandler(encoding);
 	    if (handler == NULL)
-		return(-1);
+		htmlSaveErr(XML_SAVE_UNKNOWN_ENCODING, NULL, encoding);
 	}
     }
 
@@ -1150,7 +1168,7 @@ htmlSaveFileFormat(const char *filename, xmlDocPtr cur,
 
     if ((cur == NULL) || (filename == NULL))
         return(-1);
-       
+
     xmlInitParser();
 
     if (encoding != NULL) {
@@ -1167,9 +1185,9 @@ htmlSaveFileFormat(const char *filename, xmlDocPtr cur,
 
 	    handler = xmlFindCharEncodingHandler(encoding);
 	    if (handler == NULL)
-		return(-1);
-            htmlSetMetaEncoding(cur, (const xmlChar *) encoding);
+		htmlSaveErr(XML_SAVE_UNKNOWN_ENCODING, NULL, encoding);
 	}
+        htmlSetMetaEncoding(cur, (const xmlChar *) encoding);
     } else {
 	htmlSetMetaEncoding(cur, (const xmlChar *) "UTF-8");
     }

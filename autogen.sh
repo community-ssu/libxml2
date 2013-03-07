@@ -15,13 +15,13 @@ set -e
 libtoolize --force --copy
 
 ## ----------------------------------------------------------------------
-aclocal-1.10
+aclocal-1.9
 
 ## ----------------------------------------------------------------------
 autoheader
 
 ## ----------------------------------------------------------------------
-automake-1.10 --foreign --add-missing --force-missing --copy
+automake-1.9 --foreign --add-missing --force-missing --copy
 
 ## ----------------------------------------------------------------------
 autoconf
@@ -30,8 +30,8 @@ autoconf
 rm -rf autom4te.cache
 
 # rebuild doc/examples/index.html
-rm -f doc/examples/index.html
-make -C doc/examples -f Makefile.am rebuild
+#rm -f doc/examples/index.html
+#make -C doc/examples -f Makefile.am rebuild
 #cd doc/examples
 #xsltproc examples.xsl examples.xml
 #xmllint --valid --noout index.html

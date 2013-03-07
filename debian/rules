@@ -30,9 +30,18 @@ else
       CFLAGS += -O2 -fno-strict-aliasing
 endif
 
+ifeq ($(DEB_BUILD_ARCH), armel)
+	CFLAGS += -mfpu=neon -mfloat-abi=softfp
+
+ifneq (,$(findstring thumb,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -mthumb
+endif
+endif
+
 build: patch build-stamp
 build-stamp:
 	dh_testdir
+	./autogen.sh
 
 	# ./configure
 	LDFLAGS="-Wl,--as-needed" CFLAGS="$(CFLAGS)" SBOX_REDIRECT_IGNORE=/usr/bin/python ./configure $(confflags) PYTHON=/usr/bin/python --prefix=/usr --with-history
@@ -123,7 +132,7 @@ binary-indep: build install
 	dh_testdir -i
 	dh_testroot -i
 	dh_installdocs -i -A AUTHORS TODO README NEWS
-	dh_installchangelogs -i debian/no-upstream-changelog
+	dh_installchangelogs
 	dh_install -i --sourcedir=debian/tmp
 	dh_link -i
 	dh_strip -i
