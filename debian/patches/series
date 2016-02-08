@@ -4,4 +4,5 @@
 0004-Fix-entities-local-buffers-size-problems.patch
 0005-Fix-a-failure-to-report-xmlreader-parsing-failures.patch
 0006-Fix-potential-out-of-bound-access.patch
+cve-2013-0338-0339.patch
 0200-Fix-case-statement.patch
