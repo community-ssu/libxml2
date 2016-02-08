@@ -5,4 +5,5 @@
 0005-Fix-a-failure-to-report-xmlreader-parsing-failures.patch
 0006-Fix-potential-out-of-bound-access.patch
 cve-2013-0338-0339.patch
+cve-2013-2877.patch
 0200-Fix-case-statement.patch
