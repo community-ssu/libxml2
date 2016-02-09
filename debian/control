@@ -1,7 +1,7 @@
 Source: libxml2
 Priority: optional
 Section: libs
-Maintainer: Ludek Finstrle <luf@pzkagis.cz>
+Maintainer: Ludek Finstrle <luf@seznam.cz>
 XSBC-Original-Maintainer: Debian XML/SGML Group <debian-xml-sgml-pkgs@lists.alioth.debian.org>
 Standards-Version: 3.7.3.0
 Build-Depends: debhelper (>= 5.0.42), zlib1g-dev (>= 1:1.2.7) | libz-dev,

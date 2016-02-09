@@ -1,10 +1,28 @@
+libxml2 (2.8.0+dfsg1-7maemo0+0cssu2) unstable; urgency=high
+
+  * Fix cve-2013-0338 and cve-2013-0339: large memory consuption issues when
+    performing string substition during entity expansion (closes: #702260).
+  * Fix cve-2013-2877: out-of-bounds read when handling documents that end
+    abruptly.
+  * 0007-Fix-pthread-memory-corruption.patch: patch stolen from the 
+    upstream repository. Fix memory corruption when re-using the libxml2 
+    from threaded applications (Closes: #742258).
+  * 0008-Fix-a-thread-portability-problem.patch: Fix buggy patch 0007
+    (Closes: #765770)
+  * debian/patches/cve-2014-0191.patch: libxml2 could be made to consume
+    resources if it processed a specially crafted file.
+    (Closes: #747309, #762864, CVE-2014-0191)
+  * Add patch for CVE-2014-3660 (Closes: #765722)
+
+ -- Ludek Finstrle <luf@seznam.cz>  Thu,  9 Feb 2016 01:38:47 +0100
+
 libxml2 (2.8.0+dfsg1-7maemo0+0cssu1) unstable; urgency=low
 
   * Resync from upstream (Fixes several mem leaks and CVEs)
   * Downgrade debhelper version requirement
   * Use target's python for all things python
 
- -- Ludek Finstrle <luf@pzkagis.cz>  Thu, 10 Jan 2013 13:52:21 +0100
+ -- Ludek Finstrle <luf@seznam.cz>  Thu, 10 Jan 2013 13:52:21 +0100
 
 libxml2 (2.8.0+dfsg1-7) unstable; urgency=low
 
