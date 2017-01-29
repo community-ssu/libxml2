@@ -46,5 +46,8 @@ Heap-use-after-free-in-xmlSAX2AttributeNs.patch
 Heap-based-buffer-underreads-due-to-xmlParseName.patch
 Heap-based-buffer-overread-in-htmlCurrentChar.patch
 Avoid-building-recursive-entities.patch
+# wheezy 7
+CVE-2016-4658.patch
+CVE-2016-5131.patch
 # Maemo since 2.6.32
 0200-Fix-case-statement.patch
