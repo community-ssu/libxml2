@@ -32,5 +32,19 @@ CVE-2015-5312-Another-entity-expansion-issue.patch
 CVE-2015-7499/0001-Add-xmlHaltParser-to-stop-the-parser.patch
 CVE-2015-7499/0001-Detect-incoherency-on-GROW.patch
 CVE-2015-7500-Fix-memory-access-error-due-to-incorre.patch
+# wheezy 6
+Heap-based-buffer-overread-in-xmlNextChar.patch
+Bug-763071-heap-buffer-overflow-in-xmlStrncat-https-.patch
+Add-missing-increments-of-recursion-depth-counter-to.patch
+Avoid-an-out-of-bound-access-when-serializing-malfor.patch
+Bug-757711-heap-buffer-overflow-in-xmlFAParsePosChar.patch
+Bug-758588-Heap-based-buffer-overread-in-xmlParserPr.patch
+Bug-758605-Heap-based-buffer-overread-in-xmlDictAddS.patch
+Fix-inappropriate-fetch-of-entities-content.patch
+Heap-use-after-free-in-htmlParsePubidLiteral-and-htm.patch
+Heap-use-after-free-in-xmlSAX2AttributeNs.patch
+Heap-based-buffer-underreads-due-to-xmlParseName.patch
+Heap-based-buffer-overread-in-htmlCurrentChar.patch
+Avoid-building-recursive-entities.patch
 # Maemo since 2.6.32
 0200-Fix-case-statement.patch
