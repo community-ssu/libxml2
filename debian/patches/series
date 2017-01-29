@@ -9,5 +9,11 @@
 cve-2013-0338-0339.patch
 cve-2013-2877.patch
 cve-2014-0191.patch
+# wheezy 3+4
+cve-2014-0191-bis.patch
+0001-Avoid-extra-processing-on-entities.patch
+0001-Cache-presence-of-in-entities-content.patch
 cve-2014-3660.patch
+cve-2014-3660-bis.patch
+# Maemo since 2.6.32
 0200-Fix-case-statement.patch
