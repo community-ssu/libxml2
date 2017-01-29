@@ -1,3 +1,87 @@
+libxml2 (2.8.0+dfsg1-7maemo0+0cssu3) unstable; urgency=high
+
+  * Do not fetch external parsed entities unless asked to do so. This
+    supplements the patch for CVE-2014-0191
+  * Fix regression introducedd by the patch fixing CVE-2014-3660
+    (Closes: #768089)
+  * Add missing required patches for CVE-2014-3660.
+    The two upstream commits a3f1e3e5712257fd279917a9158278534e8f4b72 and
+    cff2546f13503ac028e4c1f63c7b6d85f2f2d777 are required in addition to the
+    commit be2a7edaf289c5da74a4f9ed3a0b6c733e775230 to fix CVE-2014-3660 due
+    to changes in the use of ent->checked.
+    Fixes "libxml2: CVE-2014-3660 patch makes installation-guide FTBFS".
+    (Closes: #774358)
+  * Refresh cve-2014-3660.patch patch
+  * Refresh cve-2014-3660-bis.patch patch
+  * Add patches to address CVE-2015-7941.
+    CVE-2015-7941: Denial of service via out-of-bounds read. (Closes: #783010)
+  * Add CVE-2015-1819-Enforce-the-reader-to-run-in-constant-.patch.
+    CVE-2015-1819: Enforce the reader to run in constant memory.
+    Thanks to Mike Gabriel for the patch backport. (Closes: #782782)
+  * Add patches to address CVE-2015-8317.
+    CVE-2015-8317: Out-of-bounds heap read when parsing file with unfinished
+    xml declaration.
+  * Add patches to address CVE-2015-7942.
+    CVE-2015-7942: heap-based buffer overflow in
+    xmlParseConditionalSections(). (Closes: #802827)
+  * Add Fix-parsing-short-unclosed-comment-uninitialized-acc.patch patch.
+    Parsing an unclosed comment can result in `Conditional jump or move
+    depends on uninitialised value(s)` and unsafe memory access.
+    (Closes: #782985)
+  * Add CVE-2015-8035-Fix-XZ-compression-support-loop.patch patch.
+    CVE-2015-8035: DoS when parsing specially crafted XML document if XZ
+    support is enabled. (Closes: #803942)
+  * Add Avoid-extra-processing-of-MarkupDecl-when-EOF.patch patch.
+    CVE-2015-8241: Buffer overread with XML parser in xmlNextChar.
+    (Closes: #806384)
+  * Add Avoid-processing-entities-after-encoding-conversion-.patch patch.
+    CVE-2015-7498: Heap-based buffer overflow in xmlParseXmlDecl.
+  * Add CVE-2015-7497-Avoid-an-heap-buffer-overflow-in-xmlDi.patch patch.
+    CVE-2015-7497: Heap-based buffer overflow in xmlDictComputeFastQKey.
+  * Add CVE-2015-5312-Another-entity-expansion-issue.patch patch.
+    CVE-2015-5312: CPU exhaustion when processing specially crafted XML
+    input.
+  * Add patches to address CVE-2015-7499.
+    CVE-2015-7499: Heap-based buffer overflow in xmlGROW.
+    Add a specific parser error (XML_ERR_USER_STOP), backported from
+    e50ba8164eee06461c73cd8abb9b46aa0be81869 upstream (commit to address
+    CVE-2013-2877, the "Try to stop parsing as quickly as possible" was not
+    backported).
+  * Add CVE-2015-7500-Fix-memory-access-error-due-to-incorre.patch patch.
+    CVE-2015-7500: Heap buffer overflow in xmlParseMisc.
+  * Heap-based buffer overread in xmlNextChar (CVE-2016-1762)
+  * heap-buffer-overflow in xmlStrncat (CVE-2016-1834)
+  * Add missing increments of recursion depth counter to XML parser
+    (CVE-2016-3705) (Closes: #823414)
+  * Avoid an out of bound access when serializing malformed strings
+    (CVE-2016-4483) (Closes: #823405)
+  * Heap-buffer-overflow in xmlFAParsePosCharGroup (CVE-2016-1840)
+  * Heap-based buffer overread in xmlParserPrintFileContextInternal
+    (CVE-2016-1838)
+  * Heap-based buffer overread in xmlDictAddString (CVE-2016-1839
+    CVE-2015-8806 CVE-2016-2073) (Closes: #813613, #812807)
+  * Fix inappropriate fetch of entities content (CVE-2016-4449)
+  * Heap use-after-free in htmlParsePubidLiteral and htmlParseSystemiteral
+    (CVE-2016-1837)
+  * Heap use-after-free in xmlSAX2AttributeNs (CVE-2016-1835)
+  * Heap-based buffer-underreads due to xmlParseName (CVE-2016-4447)
+  * Heap-based buffer overread in htmlCurrentChar (CVE-2016-1833)
+  * Avoid building recursive entities (CVE-2016-3627) (Closes: #819006)
+  * CVE-2016-4658
+    Namespace nodes must be copied to avoid use-after-free errors.
+    But they don't necessarily have a physical representation in a
+    document, so simply disallow them in XPointer ranges.
+  * CVE-2016-5131
+    The old code would invoke the broken xmlXPtrRangeToFunction.
+    range-to isn't really a function but a special kind of
+    location step. Remove this function and always handle range-to
+    in the XPath code.
+    The old xmlXPtrRangeToFunction could also be abused to trigger
+    a use-after-free error with the potential for remote code
+    execution.
+
+ -- Ludek Finstrle <luf@seznam.cz>  Sun, 15 Jan 2017 14:48:03 +0100
+
 libxml2 (2.8.0+dfsg1-7maemo0+0cssu2) unstable; urgency=high
 
   * Fix cve-2013-0338 and cve-2013-0339: large memory consuption issues when
