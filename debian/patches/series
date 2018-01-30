@@ -53,5 +53,8 @@ CVE-2016-5131.patch
 CVE-2017-7375.patch
 CVE-2017-9047-9048.patch
 CVE-2017-9049-9050.patch
+# wheezy 9
+CVE-2017-7376.patch
+CVE-2017-0663.patch
 # Maemo since 2.6.32
 0200-Fix-case-statement.patch
