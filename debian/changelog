@@ -1,3 +1,44 @@
+libxml2 (2.8.0+dfsg1-7maemo0+0cssu4) unstable; urgency=high
+
+  * CVE-2017-15412 
+    Fix XPath stack frame logic and avoid use after free.
+  * CVE-2017-16931 
+    parser.c in libxml2 before 2.9.5 mishandles parameter-entity
+    references because the NEXTL macro calls the
+    xmlParserHandlePEReference function in the case of a '%' character
+    in a DTD name.
+  * CVE-2017-16932
+    parser.c in libxml2 before 2.9.5 does not prevent infinite 
+    recursion in parameter entities.
+  * CVE-2017-5130
+    Check for integer overflow in memory debug code.
+  * CVE-2017-7376
+    Incorrect limit used for port values.
+  * CVE-2017-0663
+    invalid casting of ns- to xmlAttrPtr-structure
+  * CVE-2017-7375
+    Missing validation for external entities in xmlParsePEReference
+  * CVE-2017-9047 + CVE-2017-9048
+    A buffer overflow was discovered in libxml2 20904-GITv2.9.4-16-g0741801.
+    The function xmlSnprintfElementContent in valid.c is supposed to
+    recursively dump the element content definition into a char buffer 'buf'
+    of size 'size'. The variable len is assigned strlen(buf).
+    If the content->type is XML_ELEMENT_CONTENT_ELEMENT, then (i) the
+    content->prefix is appended to buf (if it actually fits) whereupon
+    (ii) content->name is written to the buffer. However, the check for
+    whether the content->name actually fits also uses 'len' rather than
+    the updated buffer length strlen(buf). This allows us to write about
+    "size" many bytes beyond the allocated memory. This vulnerability
+    causes programs that use libxml2, such as PHP, to crash.
+  * CVE-2017-9049 + CVE-2017-9050
+    libxml2 20904-GITv2.9.4-16-g0741801 is vulnerable to a heap-based
+    buffer over-read in the xmlDictComputeFastKey function in dict.c.
+    This vulnerability causes programs that use libxml2, such as PHP,
+    to crash. This vulnerability exists because of an incomplete fix
+    for libxml2 Bug 759398.
+
+ -- Ludek Finstrle <luf@seznam.cz>  Tue, 30 Jan 2018 17:42:24 +0100
+
 libxml2 (2.8.0+dfsg1-7maemo0+0cssu3) unstable; urgency=high
 
   * Do not fetch external parsed entities unless asked to do so. This
